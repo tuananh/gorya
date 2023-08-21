@@ -1,6 +1,7 @@
 package store
 
 import (
+	"gorm.io/gorm/clause"
 	"sync"
 
 	"github.com/nduyphuong/gorya/internal/models"
@@ -53,7 +54,11 @@ func New(db *gorm.DB) Interface {
 }
 
 func (c *Storage) SavePolicy(m models.Policy) error {
-	if err := c.db.Save(&m).Error; err != nil {
+
+	if err := c.db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "name"}},
+		DoUpdates: clause.AssignmentColumns([]string{"name", "display_name", "projects", "tags", "schedule_name"}),
+	}).Create(&m).Error; err != nil {
 		return err
 	}
 	return nil
@@ -95,7 +100,10 @@ func (c *Storage) DeletePolicy(name string) error {
 }
 
 func (c *Storage) SaveSchedule(m models.ScheduleModel) error {
-	if err := c.db.Save(&m).Error; err != nil {
+	if err := c.db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "name"}},
+		DoUpdates: clause.AssignmentColumns([]string{"name", "display_name", "time_zone", "schedule"}),
+	}).Create(&m).Error; err != nil {
 		return err
 	}
 	return nil
@@ -103,7 +111,6 @@ func (c *Storage) SaveSchedule(m models.ScheduleModel) error {
 
 func (c *Storage) GetSchedule(name string) (*models.ScheduleModel, error) {
 	r := models.ScheduleModel{}
-
 	query := c.db.Model(&models.ScheduleModel{}).Where("name = ?", name)
 	if err := query.Find(&r).Error; err != nil {
 		return nil, err

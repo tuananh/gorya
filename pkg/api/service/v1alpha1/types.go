@@ -47,7 +47,13 @@ type AddPolicyRequest struct {
 }
 
 type GetScheduleResponse struct {
-	models.ScheduleModel
+	Name        string  ` json:"name" gorm:"size:191;unique"`
+	DisplayName string  `json:"displayname"`
+	TimeZone    string  `json:"timezone"`
+	Dtype       string  `json:"dtype"`
+	Corder      bool    `json:"Corder"`
+	Shape       []int   `json:"Shape"`
+	NdArray     [][]int `json:"__ndarray__"`
 }
 
 type ListResponsesVerbose []ListResponseVerbose

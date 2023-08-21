@@ -23,7 +23,6 @@
     "eject": "react-scripts eject"
   },
   "devDependencies": {
-    "eslint-plugin-prettier": "^3.4.0",
     "prettier": "^2.3.0"
   },
   "browserslist": {

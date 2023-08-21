@@ -1,6 +1,6 @@
 class PolicyService {
   list = async () => {
-    const response = await fetch(`/api/v1/list_policies?verbose=true`, {
+    const response = await fetch(`/api/v1alpha1/list_policies?verbose=true`, {
       method: 'GET',
       credentials: 'same-origin',
     });
@@ -15,7 +15,7 @@ class PolicyService {
   };
 
   get = async (policy) => {
-    const response = await fetch(`/api/v1/get_policy?policy=${policy}`, {
+    const response = await fetch(`/api/v1alpha1/get_policy?policy=${policy}`, {
       method: 'GET',
       credentials: 'same-origin',
     });
@@ -30,7 +30,7 @@ class PolicyService {
   };
 
   delete = async (policy) => {
-    const response = await fetch(`/api/v1/del_policy?policy=${policy}`, {
+    const response = await fetch(`/api/v1alpha1/del_policy?policy=${policy}`, {
       method: 'GET',
       credentials: 'same-origin',
     });
@@ -45,7 +45,7 @@ class PolicyService {
   };
 
   add = async (policy) => {
-    const response = await fetch(`/api/v1/add_policy`, {
+    const response = await fetch(`/api/v1alpha1/add_policy`, {
       method: 'POST',
       credentials: 'same-origin',
       headers: {

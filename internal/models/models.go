@@ -23,7 +23,6 @@ type Schedule struct {
 }
 
 type Policy struct {
-	gorm.Model
 	Name         string                                 `gorm:"size:191;unique" json:"name"`
 	DisplayName  string                                 `json:"displayname"`
 	Projects     datatypes.JSONSlice[string]            `json:"projects"`

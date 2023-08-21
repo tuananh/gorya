@@ -42,10 +42,10 @@ func newServerCommand() *cobra.Command {
 				QueueOpts: queueOptions.Options{
 					Name:          os.GetEnv("GORYA_QUEUE_NAME", "gorya"),
 					Addr:          os.GetEnv("GORYA_REDIS_ADDR", "localhost:6379"),
-					FetchInterval: 30 * time.Second,
+					FetchInterval: 300 * time.Second,
 				},
 			})
-			ticker := time.NewTicker(5 * time.Second)
+			ticker := time.NewTicker(60 * time.Second)
 			taskProcessResultChan := make(chan string)
 			numWorkers := types.MustParseInt(os.GetEnv("GORYA_NUM_WORKER", "1"))
 			for i := 0; i <= numWorkers; i++ {

@@ -2,24 +2,24 @@ package api
 
 import (
 	"context"
-	"net"
-	"net/http"
-	"time"
-
-	"github.com/nduyphuong/gorya/internal/os"
-	queueOptions "github.com/nduyphuong/gorya/internal/queue/options"
-	"github.com/nduyphuong/gorya/internal/worker"
-	"github.com/nduyphuong/gorya/pkg/aws"
-
 	"github.com/nduyphuong/gorya/internal/api/config"
 	"github.com/nduyphuong/gorya/internal/api/handler"
+	httputil "github.com/nduyphuong/gorya/internal/http"
 	"github.com/nduyphuong/gorya/internal/logging"
+	"github.com/nduyphuong/gorya/internal/os"
+	queueOptions "github.com/nduyphuong/gorya/internal/queue/options"
 	"github.com/nduyphuong/gorya/internal/store"
 	"github.com/nduyphuong/gorya/internal/version"
+	"github.com/nduyphuong/gorya/internal/worker"
 	svcv1alpha1 "github.com/nduyphuong/gorya/pkg/api/service/v1alpha1"
+	"github.com/nduyphuong/gorya/pkg/aws"
 	"github.com/pkg/errors"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
+	"net"
+	"net/http"
+	goos "os"
+	"time"
 )
 
 type Server interface {
@@ -66,6 +66,7 @@ func (s *server) Serve(ctx context.Context, l net.Listener) error {
 	})
 	path, svcHandler := svcv1alpha1.NewGoryaServiceHandler(ctx, s.sc, s)
 	mux.Handle(path, svcHandler)
+	mux.Handle("/ui", s.newDashboardRequestHandler())
 	srv := &http.Server{
 		Handler:           h2c.NewHandler(mux, &http2.Server{}),
 		ReadHeaderTimeout: time.Minute,
@@ -81,6 +82,22 @@ func (s *server) Serve(ctx context.Context, l net.Listener) error {
 			return nil
 		}
 		return err
+	}
+}
+
+func (s *server) newDashboardRequestHandler() http.HandlerFunc {
+	fs := http.FileServer(http.Dir(s.cfg.UIDirectory))
+	return func(w http.ResponseWriter, req *http.Request) {
+		path := s.cfg.UIDirectory + req.URL.Path
+		info, err := goos.Stat(path)
+		if goos.IsNotExist(err) || info.IsDir() {
+			if w != nil {
+				httputil.SetNoCacheHeaders(w)
+				http.ServeFile(w, req, s.cfg.UIDirectory+"/index.html")
+			}
+		} else {
+			fs.ServeHTTP(w, req)
+		}
 	}
 }
 

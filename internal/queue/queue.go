@@ -45,7 +45,6 @@ func (c *Client) Enqueue(ctx context.Context, v any) error {
 }
 
 // Dequeue pop head of the queue and return the popped value
-// Blocking infinitely if queue is empty
 func (c *Client) dequeue(ctx context.Context) (string, error) {
 	resp, err := c.Redis.RPop(ctx, c.opts.Name).Result()
 	if err != nil {

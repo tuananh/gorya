@@ -29,7 +29,12 @@ func GetScheduleV1alpha1(ctx context.Context, store store.Interface) http.Handle
 			return
 		}
 		resp := svcv1alpha1.GetScheduleResponse{
-			ScheduleModel: *schedule,
+			Name:        schedule.Name,
+			DisplayName: notEmpty(schedule.Name, schedule.DisplayName),
+			TimeZone:    schedule.TimeZone,
+			Dtype:       schedule.Schedule.Data().Dtype,
+			Corder:      schedule.Schedule.Data().Corder,
+			NdArray:     schedule.Schedule.Data().NdArray,
 		}
 		b, err := json.Marshal(resp)
 		if err != nil {

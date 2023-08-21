@@ -16,7 +16,6 @@ import (
 func ScheduleTaskV1alpha1(ctx context.Context, awsClient aws.Interface, store store.Interface,
 	taskProcessor worker.Interface) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		fmt.Println("hello")
 		var err error
 		policies, err := store.ListPolicy()
 		if err != nil {

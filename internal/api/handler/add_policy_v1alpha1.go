@@ -21,7 +21,6 @@ func AddPolicyV1Alpha1(ctx context.Context, store store.Interface) http.HandlerF
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		fmt.Printf("scheduleName: %v \n", m.ScheduleName)
 		schedule, err := store.GetSchedule(m.ScheduleName)
 		if schedule == nil {
 			fmt.Println("schedule not found")
