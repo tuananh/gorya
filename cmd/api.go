@@ -42,7 +42,7 @@ func newServerCommand() *cobra.Command {
 				QueueOpts: queueOptions.Options{
 					Name:          os.GetEnv("GORYA_QUEUE_NAME", "gorya"),
 					Addr:          os.GetEnv("GORYA_REDIS_ADDR", "localhost:6379"),
-					FetchInterval: 5 * time.Second,
+					FetchInterval: 30 * time.Second,
 				},
 			})
 			ticker := time.NewTicker(5 * time.Second)
