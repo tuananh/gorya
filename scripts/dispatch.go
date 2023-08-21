@@ -8,10 +8,10 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/nduyphuong/gorya/internal/queue"
-	"github.com/nduyphuong/gorya/internal/worker"
-	"github.com/sirupsen/logrus"
 	"time"
+
+	queueOpts "github.com/nduyphuong/gorya/internal/queue/options"
+	"github.com/nduyphuong/gorya/internal/worker"
 )
 
 func main() {
@@ -25,8 +25,7 @@ func main() {
 	}
 	ctx := context.TODO()
 	w := worker.NewClient(worker.Options{
-		Log: logrus.New(),
-		QueueOpts: queue.Options{
+		QueueOpts: queueOpts.Options{
 			Addr:          "localhost:6379",
 			Name:          *queueName,
 			FetchInterval: 2 * time.Second,
