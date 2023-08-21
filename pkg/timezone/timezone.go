@@ -1,5 +1,10 @@
 package timezone
 
+import (
+	"strconv"
+	"time"
+)
+
 var (
 	AllTimeZoneUnchecked = []string{"Africa/Abidjan",
 		"Africa/Accra",
@@ -601,4 +606,16 @@ var (
 
 func List() []string {
 	return AllTimeZoneUnchecked
+}
+
+func ConvertTimeToIndex(in time.Time) (int, int) {
+	var day, hour int
+	days := []int{6, 0, 1, 2, 3, 4, 5}
+	for i, v := range days {
+		if strconv.Itoa(v) == in.Weekday().String() {
+			day = i
+		}
+	}
+	hour = in.Hour()
+	return day, hour
 }

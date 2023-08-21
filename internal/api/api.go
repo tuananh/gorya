@@ -6,9 +6,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/nduyphuong/gorya/internal/os"
+	queueOptions "github.com/nduyphuong/gorya/internal/queue/options"
+	"github.com/nduyphuong/gorya/internal/worker"
+	"github.com/nduyphuong/gorya/pkg/aws"
+
 	"github.com/nduyphuong/gorya/internal/api/config"
 	"github.com/nduyphuong/gorya/internal/api/handler"
-	"github.com/nduyphuong/gorya/internal/api/option"
 	"github.com/nduyphuong/gorya/internal/logging"
 	"github.com/nduyphuong/gorya/internal/store"
 	"github.com/nduyphuong/gorya/internal/version"
@@ -23,7 +27,10 @@ type Server interface {
 }
 
 type server struct {
-	cfg config.ServerConfig
+	cfg           config.ServerConfig
+	sc            store.Interface
+	aws           aws.Interface
+	taskProcessor worker.Interface
 }
 
 func NewServer(cfg config.ServerConfig) (Server, error) {
@@ -33,6 +40,7 @@ func NewServer(cfg config.ServerConfig) (Server, error) {
 }
 
 func (s *server) Serve(ctx context.Context, l net.Listener) error {
+	var err error
 	errCh := make(chan error)
 	log := logging.LoggerFromContext(ctx)
 	log.Infof("Server is listening on %q", l.Addr().String())
@@ -40,19 +48,29 @@ func (s *server) Serve(ctx context.Context, l net.Listener) error {
 	mux.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Hello, world!"))
 	})
-	opts := option.NewHandlerOption()
-	store, err := store.GetSingleton()
+	s.sc, err = store.GetOnce()
 	if err != nil {
 		return err
 	}
-	path, svcHandler := svcv1alpha1.NewGoryaServiceHandler(ctx, store, s, opts)
+	awsRegion := os.GetEnv("AWS_REGION", "ap-southeast-1")
+	s.aws, err = aws.New(ctx, awsRegion)
+	if err != nil {
+		return err
+	}
+	s.taskProcessor = worker.NewClient(worker.Options{
+		QueueOpts: queueOptions.Options{
+			Addr:          os.GetEnv("GORYA_REDIS_ADDR", "localhost:6379"),
+			Name:          os.GetEnv("GORYA_QUEUE_NAME", "gorya"),
+			FetchInterval: 2 * time.Second,
+		},
+	})
+	path, svcHandler := svcv1alpha1.NewGoryaServiceHandler(ctx, s.sc, s)
 	mux.Handle(path, svcHandler)
 	srv := &http.Server{
 		Handler:           h2c.NewHandler(mux, &http2.Server{}),
 		ReadHeaderTimeout: time.Minute,
 	}
 	go func() { errCh <- srv.Serve(l) }()
-
 	select {
 	case <-ctx.Done():
 		log.Info("Gracefully stopping server...")
@@ -74,6 +92,42 @@ func (s *server) GetVersionInfo() http.Handler {
 	return handler.GetVersionInfoV1Alpha1(version.GetVersion())
 }
 
-func (s *server) AddSchedule(ctx context.Context, store store.Interface) http.Handler {
-	return handler.AddScheduleV1Alpha1(ctx, store)
+func (s *server) AddSchedule(ctx context.Context) http.Handler {
+	return handler.AddScheduleV1Alpha1(ctx, s.sc)
+}
+
+func (s *server) GetSchedule(ctx context.Context) http.Handler {
+	return handler.GetScheduleV1alpha1(ctx, s.sc)
+}
+
+func (s *server) ListSchedule(ctx context.Context) http.Handler {
+	return handler.ListScheduleV1alpha1(ctx, s.sc)
+}
+
+func (s *server) DeleteSchedule(ctx context.Context) http.Handler {
+	return handler.DeleteScheduleV1alpha1(ctx, s.sc)
+}
+
+func (s *server) AddPolicy(ctx context.Context) http.Handler {
+	return handler.AddPolicyV1Alpha1(ctx, s.sc)
+}
+
+func (s *server) GetPolicy(ctx context.Context) http.Handler {
+	return handler.GetPolicyV1Alpha1(ctx, s.sc)
+}
+
+func (s *server) ListPolicy(ctx context.Context) http.Handler {
+	return handler.ListPolicyV1alpha1(ctx, s.sc)
+}
+
+func (s *server) DeletePolicy(ctx context.Context) http.Handler {
+	return handler.DeletePolicyV1alpha1(ctx, s.sc)
+}
+
+func (s *server) ChangeState(ctx context.Context) http.Handler {
+	return handler.ChangeStateV1alpha1(ctx, s.aws)
+}
+
+func (s *server) ScheduleTask(ctx context.Context) http.Handler {
+	return handler.ScheduleTaskV1alpha1(ctx, s.aws, s.sc, s.taskProcessor)
 }

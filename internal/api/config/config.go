@@ -6,22 +6,6 @@ import (
 	"github.com/kelseyhightower/envconfig"
 )
 
-// AdminConfig represents configuration for an admin account.
-type AdminConfig struct {
-	// Password is the password for the admin account.
-	Password string `envconfig:"ADMIN_ACCOUNT_PASSWORD" required:"true"`
-	// TokenSigningKey is the key used to sign ID tokens for the admin account.
-	TokenSigningKey []byte `envconfig:"TOKEN_SIGNING_KEY" required:"true"`
-}
-
-// AdminConfigFromEnv returns an AdminConfig populated from environment
-// variables.
-func AdminConfigFromEnv() AdminConfig {
-	cfg := AdminConfig{}
-	envconfig.MustProcess("", &cfg)
-	return cfg
-}
-
 type ServerConfig struct {
 	StandardConfig
 }

@@ -18,9 +18,11 @@ func NewMySQLDB(host string, user string, password string, dbName string) (*gorm
 		return nil, err
 	}
 
-	db.AutoMigrate(
-		&models.PolicyModel{},
+	if err := db.AutoMigrate(
+		&models.Policy{},
 		&models.ScheduleModel{},
-	)
+	); err != nil {
+		return db, err
+	}
 	return db, nil
 }

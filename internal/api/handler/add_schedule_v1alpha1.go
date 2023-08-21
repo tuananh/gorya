@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"gorm.io/datatypes"
 	"net/http"
 
 	"github.com/nduyphuong/gorya/internal/models"
@@ -28,20 +29,20 @@ func AddScheduleV1Alpha1(ctx context.Context, store store.Interface) http.Handle
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		fmt.Printf("m: %v\n", m)
 		// TODO: converter func
 		s := models.ScheduleModel{
 			Name:        m.Name,
 			DisplayName: notEmpty(m.Name, m.DisplayName),
 			TimeZone:    m.TimeZone,
-			Schedule: models.Schedule{
+			Schedule: datatypes.NewJSONType(models.Schedule{
 				Dtype:   m.Dtype,
 				Corder:  m.Corder,
 				Shape:   m.Shape,
 				NdArray: m.NdArray,
-			},
+			}),
 		}
 		if err := store.SaveSchedule(s); err != nil {
+			fmt.Printf("error save to mysql: %v \n", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}

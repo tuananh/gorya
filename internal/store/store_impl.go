@@ -15,7 +15,7 @@ type Storage struct {
 var modelStorage *Storage
 var muModelStorage sync.Mutex
 
-func GetSingleton() (Interface, error) {
+func GetOnce() (Interface, error) {
 	muModelStorage.Lock()
 	defer func() {
 		muModelStorage.Unlock()
@@ -34,26 +34,61 @@ func GetSingleton() (Interface, error) {
 		if err != nil {
 			return nil, err
 		}
-		store := NewStorage(db)
+		store := New(db)
 		return store, nil
 	default:
 		db, err := NewSqliteDB()
 		if err != nil {
 			return nil, err
 		}
-		store := NewStorage(db)
+		store := New(db)
 		return store, nil
 	}
 }
 
-func NewStorage(db *gorm.DB) Interface {
+func New(db *gorm.DB) Interface {
 	return &Storage{
 		db,
 	}
 }
 
-func (c *Storage) SavePolicy(m models.PolicyModel) error {
+func (c *Storage) SavePolicy(m models.Policy) error {
 	if err := c.db.Save(&m).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Storage) GetPolicyByName(name string) (*models.Policy, error) {
+	r := models.Policy{}
+	query := c.db.Model(&models.Policy{}).Where("name=?", name)
+	if err := query.First(&r).Error; err != nil {
+		return nil, err
+	}
+	return &r, nil
+}
+
+func (c *Storage) GetPolicyBySchedule(name string) (*[]models.Policy, error) {
+	var r []models.Policy
+	query := c.db.Model(&models.Policy{}).Where("schedule_name=?", name)
+	if err := query.Find(&r).Error; err != nil {
+		return nil, err
+	}
+	return &r, nil
+}
+
+func (c *Storage) ListPolicy() (*[]models.Policy, error) {
+	var r []models.Policy
+	if err := c.db.Find(&r).Error; err != nil {
+		return nil, err
+	}
+	return &r, nil
+}
+
+func (c *Storage) DeletePolicy(name string) error {
+	r := models.Policy{}
+	query := c.db.Model(&models.Policy{}).Where("name=?", name)
+	if err := query.Delete(&r).Error; err != nil {
 		return err
 	}
 	return nil
@@ -61,6 +96,33 @@ func (c *Storage) SavePolicy(m models.PolicyModel) error {
 
 func (c *Storage) SaveSchedule(m models.ScheduleModel) error {
 	if err := c.db.Save(&m).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Storage) GetSchedule(name string) (*models.ScheduleModel, error) {
+	r := models.ScheduleModel{}
+
+	query := c.db.Model(&models.ScheduleModel{}).Where("name = ?", name)
+	if err := query.Find(&r).Error; err != nil {
+		return nil, err
+	}
+	return &r, nil
+}
+
+func (c *Storage) ListSchedule() (*[]models.ScheduleModel, error) {
+	var r []models.ScheduleModel
+	if err := c.db.Find(&r).Error; err != nil {
+		return nil, err
+	}
+	return &r, nil
+}
+
+func (c *Storage) DeleteSchedule(name string) error {
+	r := models.ScheduleModel{}
+	query := c.db.Model(&models.ScheduleModel{}).Where("name=?", name)
+	if err := query.Delete(&r).Error; err != nil {
 		return err
 	}
 	return nil

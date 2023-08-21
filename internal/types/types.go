@@ -9,3 +9,11 @@ func MustParseBool(s string) bool {
 	}
 	return b
 }
+
+func MustParseInt(s string) int {
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		panic(err)
+	}
+	return i
+}

@@ -1,0 +1,11 @@
+{
+  "name": "phuong2",
+  "displayname": "phuong2",
+  "projects": ["aws-dev-account"],
+  "tags": [
+    {
+      "managed-by": "phuong"
+    }
+  ],
+  "schedulename": "phuong2"
+}
