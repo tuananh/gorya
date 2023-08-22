@@ -2,13 +2,13 @@
 
 # Gorya
 
-Schedule for EC2, RDS and EKS instances
+Offtime s chedule for EC2, RDS and EKS instances
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://raw.githubusercontent.com/nduyphuong/reverse-registry/dev/LICENSE)
-[![Build status](https://github.com/nduyphuong/poorman-registry/actions/workflows/release.yml/badge.svg)](https://github.com/nduyphuong/reverse-registry/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://raw.githubusercontent.com/nduyphuong/gorya/dev/LICENSE)
+[![Build status](https://github.com/nduyphuong/gorya/actions/workflows/release.yml/badge.svg)](https://github.com/nduyphuong/gorya/actions)
 
 
-[![Run on Google Cloud](https://deploy.cloud.run/button.svg)](https://deploy.cloud.run/?git_repo=https://github.com/nduyphuong/poorman-registry.git)
+[![Run on Google Cloud](https://deploy.cloud.run/button.svg)](https://deploy.cloud.run/?git_repo=https://github.com/nduyphuong/gorya.git)
 
 ## Setup
 
