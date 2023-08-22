@@ -64,7 +64,6 @@ func newServerCommand() *cobra.Command {
 			//process result from channel
 			go func() {
 				for task := range taskProcessResultChan {
-					fmt.Println("in process func")
 					var elem worker.QueueElem
 					err := json.Unmarshal([]byte(task), &elem)
 					if err != nil {

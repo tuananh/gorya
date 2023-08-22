@@ -1,0 +1,53 @@
+name: Build and publish a Docker image to ghcr.io
+
+on:
+  workflow_call:
+    inputs:
+      SERVICE_NAME:
+        required: true
+        type: string
+      IMAGE_TAG:
+        required: true
+        type: string
+
+jobs:
+  backend_image_publish:
+    runs-on: "ubuntu-20.04"
+    if: ${{ inputs.SERVICE_NAME }} == "gorya-backend"
+    env:
+      SERVICE_NAME: ${{ inputs.SERVICE_NAME }}
+      IMAGE_TAG: ${{ inputs.IMAGE_TAG }}
+    steps:
+          - uses: actions/checkout@v2
+          - name: 'Checkout GitHub Action'
+            uses: actions/checkout@main
+          - name: 'Login to GitHub Container Registry'
+            uses: docker/login-action@v1
+            with:
+              registry: ghcr.io
+              username: ${{github.actor}}
+              password: ${{secrets.GH_PAT}}
+          - name: 'Build Inventory Image'
+            run: |
+              docker build -f backend.Dockerfile . --tag ghcr.io/${{github.actor}}/gorya-backend:${{ env.IMAGE_TAG }}
+              docker push ghcr.io/${{github.actor}}/gorya-backend:${{ env.IMAGE_TAG }}
+  ui_image_publish:
+    runs-on: "ubuntu-20.04"
+    if: ${{ inputs.SERVICE_NAME }} == "gorya-ui"
+    env:
+      SERVICE_NAME: ${{ inputs.SERVICE_NAME }}
+      IMAGE_TAG: ${{ inputs.IMAGE_TAG }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: 'Checkout GitHub Action'
+        uses: actions/checkout@main
+      - name: 'Login to GitHub Container Registry'
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{github.actor}}
+          password: ${{secrets.GH_PAT}}
+      - name: 'Build Inventory Image'
+        run: |
+          docker build -f frontend.Dockerfile . --tag ghcr.io/${{github.actor}}/gorya-ui:${{ env.IMAGE_TAG }}
+          docker push ghcr.io/${{github.actor}}/gorya-ui:${{ env.IMAGE_TAG }}   

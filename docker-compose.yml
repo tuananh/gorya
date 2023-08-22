@@ -1,0 +1,72 @@
+services:
+  redis:
+    image: redis:alpine3.18
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - queue:/data
+    networks:
+      - gorya
+
+  mysql:
+    image: mysql
+    container_name: mysql
+    command: --init-file /data/application/init.sql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "my-secret-pw"
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_DATABASE: "gorya"
+    volumes:
+      - db:/var/lib/mysql
+      - ./seeds/init.sql:/data/application/init.sql
+    networks:
+      - gorya
+
+  gorya-backend:
+#    image: ghcr.io/nduyphuong/gorya-backend
+    container_name: gorya-backend
+    ports:
+      - "8080:8080"
+    build:
+      context: .
+      dockerfile: backend.Dockerfile
+    environment:
+      GORYA_DB_PASSWORD: my-secret-pw
+      GORYA_DB_HOST: mysql
+      GORYA_DB_TYPE: mysql
+      GORYA_REDIS_ADDR: redis:6379
+      GORYA_QUEUE_NAME: gorya
+    depends_on:
+      - redis
+      - mysql
+    networks:
+      - gorya
+
+  gorya-ui:
+#    image: ghcr.io/nduyphuong/gorya-ui
+    container_name: gorya-ui
+    ports:
+      - "3000:3000"
+    build:
+      context: .
+      dockerfile: frontend.Dockerfile
+    environment:
+      NODE_OPTIONS: --openssl-legacy-provider
+      GORYA_API_ADDR: http://gorya-backend:8080
+    depends_on:
+      - gorya-backend
+    networks:
+      - gorya
+
+networks:
+  gorya:
+    driver: bridge
+
+volumes:
+  queue:
+    name: queue
+  db:
+    name: db

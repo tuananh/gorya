@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"fmt"
 	"github.com/nduyphuong/gorya/internal/store"
 	"github.com/nduyphuong/gorya/internal/worker"
 	"github.com/nduyphuong/gorya/pkg/api/service/v1alpha1"
@@ -46,10 +45,6 @@ func ScheduleTaskV1alpha1(ctx context.Context, store store.Interface,
 			prevIdx := getPreviousIdx(day*24+hour, matrixSize)
 			now := arr[day*24+hour]
 			prev := arr[prevIdx]
-			fmt.Printf("now: %v \n", now)
-			fmt.Printf("prev: %v \n", prev)
-			now = 1
-			prev = 0
 			if now != prev {
 				for _, tag := range policy.Tags {
 					for k, v := range tag {
@@ -61,7 +56,6 @@ func ScheduleTaskV1alpha1(ctx context.Context, store store.Interface,
 								TagValue:   v,
 								Action:     now,
 							}
-							fmt.Printf("elem: %v \n", e)
 							taskProcessor.Dispatch(ctx, &e)
 						}
 					}

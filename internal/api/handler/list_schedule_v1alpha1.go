@@ -7,7 +7,6 @@ import (
 	"github.com/nduyphuong/gorya/internal/types"
 	"github.com/nduyphuong/gorya/pkg/api/service/v1alpha1"
 	"net/http"
-	"strconv"
 )
 
 func ListScheduleV1alpha1(ctx context.Context, store store.Interface) http.HandlerFunc {
@@ -40,8 +39,7 @@ func ListScheduleV1alpha1(ctx context.Context, store store.Interface) http.Handl
 		} else {
 			resp := v1alpha1.ListResponse{}
 			for _, v := range *schedules {
-				//TODO: this branch could be wrong, don't panic
-				resp = append(resp, strconv.Itoa(int(v.ID)))
+				resp = append(resp, v.Name)
 			}
 			b, err := json.Marshal(resp)
 			if err != nil {
