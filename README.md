@@ -33,7 +33,7 @@ git clone https://github.com/nduyphuong/gorya
 cd ~/go/src/github.com/nduyphuong/gorya
 docker-compose up -d
 ```
-#### Option 1: Set up with helm
+#### Option 2: Set up with helm
 
 TBD
 
