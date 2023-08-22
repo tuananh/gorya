@@ -40,12 +40,13 @@ func newServerCommand() *cobra.Command {
 			errCh := make(chan error, 2)
 			taskProcessor := worker.NewClient(worker.Options{
 				QueueOpts: queueOptions.Options{
-					Name:          os.GetEnv("GORYA_QUEUE_NAME", "gorya"),
-					Addr:          os.GetEnv("GORYA_REDIS_ADDR", "localhost:6379"),
-					FetchInterval: 300 * time.Second,
+					Name: os.GetEnv("GORYA_QUEUE_NAME", "gorya"),
+					Addr: os.GetEnv("GORYA_REDIS_ADDR", "localhost:6379"),
+					//check in queue every 5 seconds
+					PopInterval: 5 * time.Second,
 				},
 			})
-			ticker := time.NewTicker(60 * time.Second)
+			ticker := time.NewTicker(2 * time.Second)
 			taskProcessResultChan := make(chan string)
 			numWorkers := types.MustParseInt(os.GetEnv("GORYA_NUM_WORKER", "1"))
 			for i := 0; i <= numWorkers; i++ {
@@ -60,9 +61,10 @@ func newServerCommand() *cobra.Command {
 					}
 				}(ctx.Done())
 			}
+			//process result from channel
 			go func() {
 				for task := range taskProcessResultChan {
-					log.Infof(" processing task %v", task)
+					fmt.Println("in process func")
 					var elem worker.QueueElem
 					err := json.Unmarshal([]byte(task), &elem)
 					if err != nil {
@@ -94,6 +96,27 @@ func newServerCommand() *cobra.Command {
 					}
 				}
 			}()
+			//periodically check if there is action to be done
+			go func(stop <-chan struct{}) {
+				for {
+					select {
+					case <-stop:
+						return
+					case <-ticker.C:
+						requestURL := fmt.Sprintf("http://localhost:%d%s", types.MustParseInt(os.GetEnv("PORT",
+							"8080")), v1alpha1.GoryaTaskScheduleProcedure)
+						req, err := http.NewRequest(http.MethodGet, requestURL, nil)
+						if err != nil {
+							errCh <- pkgerrors.Wrap(err, "creating request")
+							return
+						}
+						_, err = http.DefaultClient.Do(req)
+						if err != nil {
+							errCh <- pkgerrors.Wrap(err, "making request")
+						}
+					}
+				}
+			}(ctx.Done())
 			cfg := config.ServerConfigFromEnv()
 			srv, err := api.NewServer(cfg)
 			if err != nil {

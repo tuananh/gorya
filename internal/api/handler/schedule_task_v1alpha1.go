@@ -6,14 +6,13 @@ import (
 	"github.com/nduyphuong/gorya/internal/store"
 	"github.com/nduyphuong/gorya/internal/worker"
 	"github.com/nduyphuong/gorya/pkg/api/service/v1alpha1"
-	"github.com/nduyphuong/gorya/pkg/aws"
 	"github.com/nduyphuong/gorya/pkg/timezone"
 	"gorm.io/gorm"
 	"net/http"
 	"time"
 )
 
-func ScheduleTaskV1alpha1(ctx context.Context, awsClient aws.Interface, store store.Interface,
+func ScheduleTaskV1alpha1(ctx context.Context, store store.Interface,
 	taskProcessor worker.Interface) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		var err error
@@ -23,7 +22,7 @@ func ScheduleTaskV1alpha1(ctx context.Context, awsClient aws.Interface, store st
 			return
 		}
 		for _, policy := range *policies {
-			schedule, err := store.GetSchedule(policy.Name)
+			schedule, err := store.GetSchedule(policy.ScheduleName)
 			if err == gorm.ErrRecordNotFound {
 				w.WriteHeader(http.StatusNotFound)
 				return
@@ -32,7 +31,6 @@ func ScheduleTaskV1alpha1(ctx context.Context, awsClient aws.Interface, store st
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			fmt.Println(schedule.TimeZone)
 			location, err := time.LoadLocation(schedule.TimeZone)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -48,6 +46,10 @@ func ScheduleTaskV1alpha1(ctx context.Context, awsClient aws.Interface, store st
 			prevIdx := getPreviousIdx(day*24+hour, matrixSize)
 			now := arr[day*24+hour]
 			prev := arr[prevIdx]
+			fmt.Printf("now: %v \n", now)
+			fmt.Printf("prev: %v \n", prev)
+			now = 1
+			prev = 0
 			if now != prev {
 				for _, tag := range policy.Tags {
 					for k, v := range tag {
@@ -59,6 +61,7 @@ func ScheduleTaskV1alpha1(ctx context.Context, awsClient aws.Interface, store st
 								TagValue:   v,
 								Action:     now,
 							}
+							fmt.Printf("elem: %v \n", e)
 							taskProcessor.Dispatch(ctx, &e)
 						}
 					}

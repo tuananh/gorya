@@ -3,12 +3,9 @@ package models
 import (
 	"gorm.io/datatypes"
 	_ "gorm.io/datatypes"
-	"gorm.io/gorm"
 )
 
-// TODO: remove inherit from gorm.Model if we don't want to use soft delete
 type ScheduleModel struct {
-	gorm.Model
 	Name        string                       ` json:"name" gorm:"size:191;unique"`
 	DisplayName string                       `json:"displayname"`
 	TimeZone    string                       `json:"timezone"`

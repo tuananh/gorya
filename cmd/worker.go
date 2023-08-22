@@ -30,9 +30,9 @@ func newWorkCommand() *cobra.Command {
 			taskProcessResultChan := make(chan string)
 			taskProcessor := worker.NewClient(worker.Options{
 				QueueOpts: queueOptions.Options{
-					Addr:          os.GetEnv("GORYA_REDIS_ADDR", "localhost:6379"),
-					Name:          os.GetEnv("GORYA_QUEUE_NAME", "gorya"),
-					FetchInterval: 2 * time.Second,
+					Addr:        os.GetEnv("GORYA_REDIS_ADDR", "localhost:6379"),
+					Name:        os.GetEnv("GORYA_QUEUE_NAME", "gorya"),
+					PopInterval: 2 * time.Second,
 				},
 			})
 

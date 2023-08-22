@@ -32,7 +32,7 @@ type QueueElem struct {
 func NewClient(opts Options) Interface {
 	c := &client{
 		queue: queue.NewQueue(
-			queueOptions.WithFetchInterval(opts.QueueOpts.FetchInterval),
+			queueOptions.WithFetchInterval(opts.QueueOpts.PopInterval),
 			queueOptions.WithQueueName(opts.QueueOpts.Name),
 			queueOptions.WithQueueAddr(opts.QueueOpts.Addr),
 		),

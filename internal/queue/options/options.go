@@ -7,10 +7,10 @@ import (
 )
 
 type Options struct {
-	Name          string
-	Addr          string
-	FetchInterval time.Duration
-	Log           *logrus.Logger
+	Name        string
+	Addr        string
+	PopInterval time.Duration
+	Log         *logrus.Logger
 }
 
 type Option interface {
@@ -21,7 +21,7 @@ type fetchInterval time.Duration
 
 func (o fetchInterval) Apply(i *Options) {
 	if o > 0 {
-		i.FetchInterval = time.Duration(o)
+		i.PopInterval = time.Duration(o)
 	}
 }
 

@@ -56,7 +56,7 @@ func (c *Client) dequeue(ctx context.Context) (string, error) {
 }
 
 func (c *Client) Dequeue(ctx context.Context, out chan<- string, errChan chan<- error) {
-	ticker := time.NewTicker(c.opts.FetchInterval)
+	ticker := time.NewTicker(c.opts.PopInterval)
 	for {
 		select {
 		case <-ctx.Done():

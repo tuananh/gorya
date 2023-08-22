@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/nduyphuong/gorya/internal/api/config"
 	"github.com/nduyphuong/gorya/internal/api/handler"
-	httputil "github.com/nduyphuong/gorya/internal/http"
 	"github.com/nduyphuong/gorya/internal/logging"
 	"github.com/nduyphuong/gorya/internal/os"
 	queueOptions "github.com/nduyphuong/gorya/internal/queue/options"
@@ -18,7 +17,6 @@ import (
 	"golang.org/x/net/http2/h2c"
 	"net"
 	"net/http"
-	goos "os"
 	"time"
 )
 
@@ -59,14 +57,13 @@ func (s *server) Serve(ctx context.Context, l net.Listener) error {
 	}
 	s.taskProcessor = worker.NewClient(worker.Options{
 		QueueOpts: queueOptions.Options{
-			Addr:          os.GetEnv("GORYA_REDIS_ADDR", "localhost:6379"),
-			Name:          os.GetEnv("GORYA_QUEUE_NAME", "gorya"),
-			FetchInterval: 2 * time.Second,
+			Addr:        os.GetEnv("GORYA_REDIS_ADDR", "localhost:6379"),
+			Name:        os.GetEnv("GORYA_QUEUE_NAME", "gorya"),
+			PopInterval: 2 * time.Second,
 		},
 	})
 	path, svcHandler := svcv1alpha1.NewGoryaServiceHandler(ctx, s.sc, s)
 	mux.Handle(path, svcHandler)
-	mux.Handle("/ui", s.newDashboardRequestHandler())
 	srv := &http.Server{
 		Handler:           h2c.NewHandler(mux, &http2.Server{}),
 		ReadHeaderTimeout: time.Minute,
@@ -82,22 +79,6 @@ func (s *server) Serve(ctx context.Context, l net.Listener) error {
 			return nil
 		}
 		return err
-	}
-}
-
-func (s *server) newDashboardRequestHandler() http.HandlerFunc {
-	fs := http.FileServer(http.Dir(s.cfg.UIDirectory))
-	return func(w http.ResponseWriter, req *http.Request) {
-		path := s.cfg.UIDirectory + req.URL.Path
-		info, err := goos.Stat(path)
-		if goos.IsNotExist(err) || info.IsDir() {
-			if w != nil {
-				httputil.SetNoCacheHeaders(w)
-				http.ServeFile(w, req, s.cfg.UIDirectory+"/index.html")
-			}
-		} else {
-			fs.ServeHTTP(w, req)
-		}
 	}
 }
 
@@ -146,5 +127,5 @@ func (s *server) ChangeState(ctx context.Context) http.Handler {
 }
 
 func (s *server) ScheduleTask(ctx context.Context) http.Handler {
-	return handler.ScheduleTaskV1alpha1(ctx, s.aws, s.sc, s.taskProcessor)
+	return handler.ScheduleTaskV1alpha1(ctx, s.sc, s.taskProcessor)
 }

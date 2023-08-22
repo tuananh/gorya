@@ -26,9 +26,9 @@ func main() {
 	ctx := context.TODO()
 	w := worker.NewClient(worker.Options{
 		QueueOpts: queueOpts.Options{
-			Addr:          "localhost:6379",
-			Name:          *queueName,
-			FetchInterval: 2 * time.Second,
+			Addr:        "localhost:6379",
+			Name:        *queueName,
+			PopInterval: 2 * time.Second,
 		},
 	})
 	numWorkers := 10
@@ -39,7 +39,7 @@ func main() {
 			Project:    "test-aws-account",
 			TagKey:     "phuong",
 			TagValue:   "test",
-			Action:     0,
+			Action:     1,
 		})
 	}
 	if *dispatch {
